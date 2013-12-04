@@ -440,6 +440,10 @@ This function should accept one argument (ID of a paste)."
   "Return the default name of a buffer for the paste ID info."
   (format "*debpaste %s (info)*" id))
 
+(defun debpaste-get-posted-info-buffer-name (id)
+  "Return the name of a buffer for the posted paste ID info."
+  (format "*debpaste %s (posted info)*" id))
+
 (defun debpaste-get-paste-buffer-name (id)
   "Return the name of a buffer for the paste ID.
 Use `debpaste-get-paste-buffer-name-function'."
@@ -836,9 +840,11 @@ Return INFO."
   "Display info about last posted paste in a separate buffer."
   (interactive)
   (if debpaste-last-posted-info
-       (debpaste-display-info-in-buffer
-        debpaste-last-posted-info
-        '(id digest view-url download-url delete-url))
+      (let ((debpaste-get-info-buffer-name-function
+             'debpaste-get-posted-info-buffer-name))
+        (debpaste-display-info-in-buffer
+         debpaste-last-posted-info
+         '(id digest view-url download-url delete-url)))
     (message "You have not posted pastes in this session.")))
 
 
