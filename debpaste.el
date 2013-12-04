@@ -824,6 +824,32 @@ Interactively use current buffer."
   (with-current-buffer buffer-or-name
     (debpaste-paste-region (point-min) (point-max))))
 
+
+;;; Deleting a paste
+
+(defcustom debpaste-deleted-filter-functions
+  '(debpaste-filter-intern debpaste-filter-error-check
+    debpaste-display-deleted-info)
+  "List of functions for filtering info returned after deleting a paste.
+See `debpaste-action' for details."
+  :type '(repeat function)
+  :group 'debpaste)
+
+(defun debpaste-display-deleted-info (info)
+  "Display info about deleted paste.
+Return INFO."
+  (debpaste-display-info-in-minibuffer
+   info '(status)))
+
+;;;###autoload
+(defun debpaste-delete-paste (digest)
+  "Delete a paste with specified DIGEST from the paste server.
+You receive DIGEST after posting the paste."
+  (interactive "sPaste digest: ")
+  (debpaste-action :cmd 'del-paste
+                   :opts (list digest)
+                   :filters debpaste-deleted-filter-functions))
+
 (provide 'debpaste)
 
 ;;; debpaste.el ends here
