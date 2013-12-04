@@ -687,8 +687,8 @@ Store additional info (without paste text) in a buffer-local
 
 (defcustom debpaste-posted-filter-functions
   '(debpaste-filter-intern debpaste-filter-error-check
-    debpaste-filter-url debpaste-url-to-kill-ring
-    debpaste-display-posted-info)
+    debpaste-filter-url debpaste-save-last-posted-info
+    debpaste-url-to-kill-ring debpaste-display-posted-info)
   "List of functions for filtering info returned after posting a paste.
 See `debpaste-action' for details."
   :type '(repeat function)
@@ -823,6 +823,23 @@ Interactively use current buffer."
   (interactive (list (current-buffer)))
   (with-current-buffer buffer-or-name
     (debpaste-paste-region (point-min) (point-max))))
+
+(defvar debpaste-last-posted-info nil
+  "Alist with info about last posted paste.")
+
+(defun debpaste-save-last-posted-info (info)
+  "Set `debpaste-last-posted-info' to INFO value.
+Return INFO."
+  (setq debpaste-last-posted-info info))
+
+(defun debpaste-display-last-posted-info ()
+  "Display info about last posted paste in a separate buffer."
+  (interactive)
+  (if debpaste-last-posted-info
+       (debpaste-display-info-in-buffer
+        debpaste-last-posted-info
+        '(id digest view-url download-url delete-url))
+    (message "You have not posted pastes in this session.")))
 
 
 ;;; Deleting a paste
