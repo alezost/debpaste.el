@@ -594,7 +594,7 @@ See `debpaste-get-info-string' for description of PARAMS."
          debpaste-info-buffer-params))
   (let* ((info-str (debpaste-get-info-string
                     info params debpaste-info-buffer-format))
-         (id (debpaste-get-param-val 'id debpaste-info))
+         (id (debpaste-get-param-val 'id info))
          (buf-name (debpaste-get-info-buffer-name id)))
     (unless (get-buffer buf-name)
       (with-current-buffer (get-buffer-create buf-name)
