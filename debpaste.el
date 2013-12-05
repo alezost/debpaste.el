@@ -404,55 +404,51 @@ If there is no association for the NAME in
 
 ;;; Debpaste buffers
 
-(defcustom debpaste-paste-buffer-name-regexp
-  "^\\*debpaste [0-9]+\\*$"
-  "Regexp matching a debpaste buffer with a paste text.
+(defcustom debpaste-buffer-name-regexp
+  "^\\*debpaste .*\\*$"
+  "Regexp matching debpaste buffers.
 Used for killing and quitting debpaste buffers."
   :type 'string
   :group 'debpaste)
 
-(defcustom debpaste-info-buffer-name-regexp
-  "^\\*debpaste [0-9]+ (info)\\*$"
-  "Regexp matching a debpaste buffer with a paste info.
-Used for killing and quitting debpaste buffers."
-  :type 'string
-  :group 'debpaste)
-
-(defcustom debpaste-get-paste-buffer-name-function
-  'debpaste-get-paste-buffer-name-default
-  "Function returning the name of a buffer with a paste.
-This function should accept one argument (ID of a paste)."
+(defcustom debpaste-received-paste-buffer-name-function
+  'debpaste-received-paste-buffer-name-default
+  "Function returning the name of a buffer with a received paste.
+This function should accept one argument (info alist)."
   :type 'function
   :group 'debpaste)
 
-(defcustom debpaste-get-info-buffer-name-function
-  'debpaste-get-info-buffer-name-default
-  "Function returning the name of a buffer with a paste info.
-This function should accept one argument (ID of a paste)."
+(defcustom debpaste-received-info-buffer-name-function
+  'debpaste-received-info-buffer-name-default
+  "Function returning the name of a buffer with a received info.
+This function should accept one argument (info alist)."
   :type 'function
   :group 'debpaste)
 
-(defun debpaste-get-paste-buffer-name-default (id)
-  "Return the default name of a buffer for the paste ID."
-  (format "*debpaste %s*" id))
+(defcustom debpaste-posted-info-buffer-name-function
+  'debpaste-posted-info-buffer-name-default
+  "Function returning the name of a buffer with a posted info.
+This function should accept one argument (info alist)."
+  :type 'function
+  :group 'debpaste)
 
-(defun debpaste-get-info-buffer-name-default (id)
-  "Return the default name of a buffer for the paste ID info."
-  (format "*debpaste %s (info)*" id))
+(defun debpaste-received-paste-buffer-name-default (info)
+  "Return the default name of a buffer for displaying received paste.
+INFO is alist of paste parameters."
+  (format "*debpaste %s*"
+          (debpaste-get-param-val 'id info)))
 
-(defun debpaste-get-posted-info-buffer-name (id)
-  "Return the name of a buffer for the posted paste ID info."
-  (format "*debpaste %s (posted info)*" id))
+(defun debpaste-received-info-buffer-name-default (info)
+  "Return the default name of a buffer for displaying received info.
+INFO is alist of paste parameters."
+  (format "*debpaste %s (received info)*"
+          (debpaste-get-param-val 'id info)))
 
-(defun debpaste-get-paste-buffer-name (id)
-  "Return the name of a buffer for the paste ID.
-Use `debpaste-get-paste-buffer-name-function'."
-  (funcall debpaste-get-paste-buffer-name-function id))
-
-(defun debpaste-get-info-buffer-name (id)
-  "Return the name of a buffer for the paste ID info.
-Use `debpaste-get-info-buffer-name-function'."
-  (funcall debpaste-get-info-buffer-name-function id))
+(defun debpaste-posted-info-buffer-name-default (info)
+  "Return the default name of a buffer for displaying posted info.
+INFO is alist of paste parameters."
+  (format "*debpaste %s (posted info)*"
+          (debpaste-get-param-val 'id info)))
 
 ;; wild name, isn't it?
 (defun debpaste-debpaste-bufferp (buffer-or-name)
@@ -461,20 +457,11 @@ BUFFER-OR-NAME must be either a string (buffer name) or a buffer."
   (let ((name (if (bufferp buffer-or-name)
                   (buffer-name buffer-or-name)
                 buffer-or-name)))
-    (or (string-match debpaste-paste-buffer-name-regexp name)
-        (string-match debpaste-info-buffer-name-regexp name))))
-
-(defun debpaste-kill-paste-buffers (id)
-  "Kill existed buffers created for the paste ID."
-  (let ((bufs (list (debpaste-get-paste-buffer-name id)
-                    (debpaste-get-info-buffer-name  id))))
-    (mapc (lambda (buf) (and buf (kill-buffer buf)))
-          (mapcar 'get-buffer bufs))))
+    (string-match debpaste-buffer-name-regexp name)))
 
 (defun debpaste-kill-all-buffers ()
   "Kill all debpaste buffers.
-Buffers are defined by `debpaste-paste-buffer-name-regexp' and
-`debpaste-info-buffer-name-regexp'."
+Buffers are defined by `debpaste-buffer-name-regexp'."
   (interactive)
   (mapc (lambda (buf)
           (and (debpaste-debpaste-bufferp buf)
@@ -482,24 +469,9 @@ Buffers are defined by `debpaste-paste-buffer-name-regexp' and
         (buffer-list))
   (message "All debpaste buffers were killed."))
 
-(defun debpaste-kill-buffers ()
-  "Kill some debpaste buffers.
-
-If current buffer is a debpaste one, kill buffer(s) with this
-paste; with \\[universal-argument] kill all debpaste buffers;
-otherwise prompt for a paste ID."
-  (interactive)
-  (if (equal current-prefix-arg '(4))
-      (debpaste-kill-all-buffers)
-    (debpaste-kill-paste-buffers
-     (or (and (local-variable-p 'debpaste-info)
-              (debpaste-get-param-val 'id debpaste-info))
-         (read-string "Kill buffers with paste ID: ")))))
-
 (defun debpaste-quit-buffers ()
-  "Bury debpaste buffers and delete window with additional info.
-Buffers are defined by `debpaste-paste-buffer-name-regexp' and
-`debpaste-info-buffer-name-regexp'."
+  "Bury debpaste buffers.
+Buffers are defined by `debpaste-buffer-name-regexp'."
   (interactive)
   (mapc (lambda (win)
           ;; `select-window' is essential, otherwise (bury-buffer buf)
@@ -511,19 +483,12 @@ Buffers are defined by `debpaste-paste-buffer-name-regexp' and
         (window-list)))
 
 
-;;; Displaying info with paste parameters
+;;; Displaying info
 
 (defcustom debpaste-info-buffer-format "%s: %s\n"
   "String used to format each parameter for info displayed in buffer.
 It should contain 2 '%s'-sequences for a description and a value."
   :type 'string
-  :group 'debpaste)
-
-(defcustom debpaste-info-buffer-params
-  '(id status submitter submit-date expire-date)
-  "List of parameters that will appear in info displayed in buffer.
-Parameters are symbols from `debpaste-param-description-alist'."
-  :type '(repeat symbol)
   :group 'debpaste)
 
 (defcustom debpaste-info-minibuffer-format "%s: %s\n"
@@ -532,37 +497,13 @@ It should contain 2 '%s'-sequences for a description and a value."
   :type 'string
   :group 'debpaste)
 
-(defcustom debpaste-info-minibuffer-params
-  '(submitter submit-date expire-date)
-  "List of parameters that will appear in info displayed in minibuffer.
-Parameters are symbols from `debpaste-param-description-alist'."
-  :type '(repeat symbol)
-  :group 'debpaste)
-
 (defcustom debpaste-ignore-empty-params t
   "If non-nil, do not display empty parameters of a paste info."
   :type 'boolean
   :group 'debpaste)
 
-(defvar-local debpaste-info nil
-  "Alist with additional info for the current paste.
-
-Car of each assoc is a symbol from `debpaste-param-description-alist';
-cdr - is a value of that parameter.")
-(put 'debpaste-info 'permanent-local t) ; (info "(elisp) Creating Buffer-Local")
-
-(defun debpaste-get-info (paste-buf)
-  "Return alist containing additional paste info for buffer PASTE-BUF.
-
-PASTE-BUF should be a buffer with received paste (it should have
-a local-buffer `debpaste-info' variable)."
-  (with-current-buffer paste-buf
-    (if (local-variable-p 'debpaste-info)
-        debpaste-info
-      (error "%s is not a debpaste buffer" paste-buf))))
-
-(defun debpaste-get-info-string (info params fmt)
-  "Return a string containing paste info INFO.
+(defun debpaste-get-info-string (info fmt &optional params)
+  "Return a string containing INFO.
 
 PARAMS is a list of parameters included in a returned string.  If
 it is not specified, show all info parameters (respecting
@@ -575,8 +516,8 @@ Parameters and their descriptions got from
   (unless params
     (setq params (mapcar #'car info)))
   (mapconcat (lambda (param)
-               (let* ((desc (debpaste-get-param-description param))
-                      (val (debpaste-get-param-val param info)))
+               (let ((desc (debpaste-get-param-description param))
+                     (val (debpaste-get-param-val param info)))
                  (if (and debpaste-ignore-empty-params
                           (null val))
                      ""                 ; delete empty params
@@ -584,61 +525,73 @@ Parameters and their descriptions got from
              params
              ""))
 
-(defun debpaste-display-info-in-buffer (info &optional params)
-  "Display paste info INFO in a separate buffer.
+(defun debpaste-display-info-in-buffer (buffer-or-name info &optional params)
+  "Display INFO in a separate buffer BUFFER-OR-NAME.
 Return INFO.
 
-Interactively display info for the current debpaste buffer, use
-`debpaste-info-buffer-params' for PARAMS.
+BUFFER-OR-NAME may be a buffer or a string (a buffer name).
 
 Use `debpaste-info-buffer-format' to format displayed info.
-See `debpaste-get-info-string' for description of PARAMS."
-  (interactive
-   (list (debpaste-get-info (current-buffer))
-         debpaste-info-buffer-params))
-  (let* ((info-str (debpaste-get-info-string
-                    info params debpaste-info-buffer-format))
-         (id (debpaste-get-param-val 'id info))
-         (buf-name (debpaste-get-info-buffer-name id)))
-    (unless (get-buffer buf-name)
-      (with-current-buffer (get-buffer-create buf-name)
+See `debpaste-get-info-string' for description of FMT and PARAMS."
+  (let ((info-str (debpaste-get-info-string
+                   info debpaste-info-buffer-format params)))
+    (unless (get-buffer buffer-or-name)
+      (with-current-buffer (get-buffer-create buffer-or-name)
         (insert info-str)
         (text-mode) ;; i don't like this
         (view-mode) ;; and this (any suggestions?)
         (goto-char (point-min))))
-    (let ((win (get-buffer-window buf-name)))
+    (let ((win (get-buffer-window buffer-or-name)))
       (if win
           (select-window win)
-        (display-buffer buf-name '((display-buffer-same-window))))))
+        (display-buffer buffer-or-name '((display-buffer-same-window))))))
   info)
 
 (defun debpaste-display-info-in-minibuffer (info &optional params)
-  "Display paste info INFO in the minibuffer.
+  "Display INFO in the minibuffer.
 Return INFO.
 
-Interactively display info for the current debpaste buffer, use
-`debpaste-info-minibuffer-params' for PARAMS.
-
 Use `debpaste-info-minibuffer-format' to format displayed info.
-See `debpaste-get-info-string' for description of PARAMS."
-  (interactive
-   (list (debpaste-get-info (current-buffer))
-         debpaste-info-minibuffer-params))
+See `debpaste-get-info-string' for description of FMT and PARAMS."
   (message (debpaste-get-info-string
-            info params debpaste-info-minibuffer-format))
+            info debpaste-info-minibuffer-format params))
   info)
 
 
-;;; Displaying received paste
+;;; Getting (receiving) a paste
 
 (defcustom debpaste-received-filter-functions
   '(debpaste-filter-intern debpaste-filter-error-check
     debpaste-add-id-to-info debpaste-filter-url debpaste-filter-date
-    debpaste-display-received-paste debpaste-display-received-info)
+    debpaste-save-last-received-info debpaste-display-received-paste
+    debpaste-display-received-info-in-minibuffer)
   "List of functions for filtering info returned after receiving a paste.
 See `debpaste-action' for details."
   :type '(repeat function)
   :group 'debpaste)
+
+(defcustom debpaste-received-info-buffer-params
+  '(id status submitter submit-date expire-date)
+  "List of info parameters of a received paste displayed in buffer.
+If nil, display all parameters.
+Parameters are symbols from `debpaste-param-description-alist'."
+  :type '(repeat symbol)
+  :group 'debpaste)
+
+(defcustom debpaste-received-info-minibuffer-params
+  '(submitter submit-date expire-date)
+  "List of info parameters of a received paste displayed in minibuffer.
+If nil, display all parameters.
+Parameters are symbols from `debpaste-param-description-alist'."
+  :type '(repeat symbol)
+  :group 'debpaste)
+
+(defvar-local debpaste-info nil
+  "Alist with additional info of the current paste.
+
+Car of each assoc is a symbol from `debpaste-param-description-alist';
+cdr - is a value of that parameter.")
+(put 'debpaste-info 'permanent-local t) ; (info "(elisp) Creating Buffer-Local")
 
 (defun debpaste-add-id-to-info (info)
   "Add id parameter to the INFO.
@@ -650,18 +603,58 @@ Return modified info."
       (add-to-list 'info (cons 'id paste-id)))
   info)
 
-(defun debpaste-display-received-info (info)
-  "Display info about received paste.
+(defvar debpaste-last-received-info nil
+  "Alist with info of the last received paste.")
+
+(defun debpaste-save-last-received-info (info)
+  "Set `debpaste-last-received-info' to INFO value.
 Return INFO."
+  (setq debpaste-last-received-info info))
+
+(defun debpaste-get-received-info ()
+  "Return info of a received paste.
+
+If current buffer contains a received paste, return info of this
+paste; otherwise return info of the last received paste."
+  (or (and (local-variable-p 'debpaste-info)
+           debpaste-info)
+      debpaste-last-received-info
+      (error "You have not received pastes in this session")))
+
+(defun debpaste-display-received-info-in-buffer (info)
+  "Display INFO of a received paste in a separate buffer.
+Return INFO.
+See `debpaste-get-received-info' for details.
+
+Display parameters from `debpaste-received-info-buffer-params'
+using `debpaste-info-buffer-format' to format info text.
+
+Use `debpaste-received-info-buffer-name-function' for buffer name."
+  (interactive (list (debpaste-get-received-info)))
+  (debpaste-display-info-in-buffer
+   (funcall debpaste-received-info-buffer-name-function
+            info)
+   info debpaste-received-info-buffer-params))
+
+(defun debpaste-display-received-info-in-minibuffer (info)
+  "Display INFO of a received paste in the minibuffer.
+Return INFO.
+See `debpaste-get-received-info' for details.
+
+Display parameters from `debpaste-received-info-minibuffer-params'
+using `debpaste-info-minibuffer-format' to format info text."
+  (interactive (list (debpaste-get-received-info)))
   (debpaste-display-info-in-minibuffer
-   info debpaste-info-minibuffer-params))
+   info debpaste-received-info-minibuffer-params))
 
 (defun debpaste-display-received-paste (info)
   "Display text parameter from INFO in a debpaste buffer.
 Return INFO.
 Store additional info (without paste text) in a buffer-local
 `debpaste-info' variable."
-  (let ((buf (get-buffer-create (debpaste-get-paste-buffer-name id)))
+  (let ((buf (get-buffer-create
+              (funcall debpaste-received-paste-buffer-name-function
+                       info)))
         (paste-text (debpaste-get-param-val 'text info))
         (paste-info (delete-if (lambda (param) (equal (car param) 'text))
                                info)))
@@ -692,10 +685,26 @@ Store additional info (without paste text) in a buffer-local
 (defcustom debpaste-posted-filter-functions
   '(debpaste-filter-intern debpaste-filter-error-check
     debpaste-filter-url debpaste-save-last-posted-info
-    debpaste-url-to-kill-ring debpaste-display-posted-info)
+    debpaste-url-to-kill-ring debpaste-display-posted-info-in-minibuffer)
   "List of functions for filtering info returned after posting a paste.
 See `debpaste-action' for details."
   :type '(repeat function)
+  :group 'debpaste)
+
+(defcustom debpaste-posted-info-buffer-params
+  '(id digest view-url download-url delete-url)
+  "List of info parameters of a posted paste displayed in buffer.
+If nil, display all parameters.
+Parameters are symbols from `debpaste-param-description-alist'."
+  :type '(repeat symbol)
+  :group 'debpaste)
+
+(defcustom debpaste-posted-info-minibuffer-params
+  '(download-url delete-url)
+  "List of info parameters of a posted paste displayed in minibuffer.
+If nil, display all parameters.
+Parameters are symbols from `debpaste-param-description-alist'."
+  :type '(repeat symbol)
   :group 'debpaste)
 
 (defcustom debpaste-completing-read-function
@@ -781,14 +790,6 @@ Return INFO."
   (kill-new (debpaste-get-param-val 'view-url info))
   info)
 
-(defun debpaste-display-posted-info (info)
-  "Display info about posted paste.
-Return INFO."
-  (message "Your paste has been posted successfully.\n%s"
-           (debpaste-get-info-string info '(download-url delete-url)
-                                     debpaste-info-minibuffer-format))
-  info)
-
 ;;;###autoload
 (defun debpaste-paste-region (start end)
   "Send a region to the paste server.
@@ -836,29 +837,54 @@ Interactively use current buffer."
 Return INFO."
   (setq debpaste-last-posted-info info))
 
-(defun debpaste-display-last-posted-info ()
-  "Display info about last posted paste in a separate buffer."
-  (interactive)
-  (if debpaste-last-posted-info
-      (let ((debpaste-get-info-buffer-name-function
-             'debpaste-get-posted-info-buffer-name))
-        (debpaste-display-info-in-buffer
-         debpaste-last-posted-info
-         '(id digest view-url download-url delete-url)))
-    (message "You have not posted pastes in this session.")))
+(defun debpaste-get-posted-info ()
+  "Return info of a last posted paste."
+  (or debpaste-last-posted-info
+      (error "You have not posted pastes in this session")))
+
+(defun debpaste-display-posted-info-in-buffer (info)
+  "Display INFO of a posted paste in a separate buffer.
+Return INFO.
+
+Interactively, display info of the last posted paste.
+
+Display parameters from `debpaste-posted-info-buffer-params'
+using `debpaste-info-buffer-format' to format info text.
+
+Use `debpaste-posted-info-buffer-name-function' for buffer name."
+  (interactive (list (debpaste-get-posted-info)))
+  (debpaste-display-info-in-buffer
+   (funcall debpaste-posted-info-buffer-name-function
+            info)
+   info debpaste-posted-info-buffer-params))
+
+(defun debpaste-display-posted-info-in-minibuffer (info)
+  "Display INFO of a posted paste in the minibuffer.
+Return INFO.
+
+Interactively, display info of the last posted paste.
+
+Display parameters from `debpaste-posted-info-minibuffer-params'
+using `debpaste-info-minibuffer-format' to format info text."
+  (interactive (list (debpaste-get-posted-info)))
+  (message "Your paste has been posted successfully.\n%s"
+           (debpaste-get-info-string
+            info debpaste-info-minibuffer-format
+            debpaste-posted-info-minibuffer-params))
+  info)
 
 
 ;;; Deleting a paste
 
 (defcustom debpaste-deleted-filter-functions
   '(debpaste-filter-intern debpaste-filter-error-check
-    debpaste-display-deleted-info)
+    debpaste-display-deleted-info-in-minibuffer)
   "List of functions for filtering info returned after deleting a paste.
 See `debpaste-action' for details."
   :type '(repeat function)
   :group 'debpaste)
 
-(defun debpaste-display-deleted-info (info)
+(defun debpaste-display-deleted-info-in-minibuffer (info)
   "Display info about deleted paste.
 Return INFO."
   (debpaste-display-info-in-minibuffer
