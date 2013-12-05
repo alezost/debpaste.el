@@ -893,11 +893,24 @@ Return INFO."
 ;;;###autoload
 (defun debpaste-delete-paste (digest)
   "Delete a paste with specified DIGEST from the paste server.
-You receive DIGEST after posting the paste."
-  (interactive "sPaste digest: ")
+
+Interactively, prompt for DIGEST.  If there is SHA1 digest at
+point, it will be used as initial input.
+
+You receive DIGEST after posting a paste."
+  (interactive
+   (list (read-string "Paste digest: "
+                      (debpaste-sha1-at-point))))
   (debpaste-action :cmd 'del-paste
                    :opts (list digest)
                    :filters debpaste-deleted-filter-functions))
+
+(defun debpaste-sha1-at-point ()
+  "Return the SHA1 digest at point, or nil if none is found.
+SHA1 (Secure Hash Algorithm) digest is a word of 40 hexadecimal symbols."
+  (let ((word (thing-at-point 'word)))
+    (and (string-match "^[0-9a-f]\\{40\\}$" word)
+         word)))
 
 (provide 'debpaste)
 
