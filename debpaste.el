@@ -685,7 +685,7 @@ Store additional info (without paste text) in a buffer-local
 (defcustom debpaste-posted-filter-functions
   '(debpaste-filter-intern debpaste-filter-error-check
     debpaste-filter-url debpaste-save-last-posted-info
-    debpaste-url-to-kill-ring debpaste-display-posted-info-in-minibuffer)
+    debpaste-posted-kill-url-display-summary)
   "List of functions for filtering info returned after posting a paste.
 See `debpaste-action' for details."
   :type '(repeat function)
@@ -785,7 +785,7 @@ prompting."
   (y-or-n-p "Hidden paste?"))
 
 (defun debpaste-url-to-kill-ring (info)
-  "Add view-url parameter from INFO to kill-ring.
+  "Add view-url parameter from INFO to the kill-ring.
 Return INFO."
   (kill-new (debpaste-get-param-val 'view-url info))
   info)
@@ -871,6 +871,22 @@ using `debpaste-info-minibuffer-format' to format info text."
            (debpaste-get-info-string
             info debpaste-info-minibuffer-format
             debpaste-posted-info-minibuffer-params))
+  info)
+
+(defun debpaste-posted-kill-url-display-summary (info)
+  "Add paste URL to the kill-ring and display paste summary.
+Return INFO.
+
+Interactively, use info of the last posted paste.
+
+See `debpaste-url-to-kill-ring'."
+  (interactive (list (debpaste-get-posted-info)))
+  (debpaste-url-to-kill-ring info)
+  (message "Your paste has been posted successfully.
+Paste URL has been added to the kill ring.\n%s"
+           (debpaste-get-info-string
+            info debpaste-info-minibuffer-format
+            '(digest)))
   info)
 
 
