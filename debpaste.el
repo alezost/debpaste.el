@@ -94,6 +94,7 @@ cdr - is a command name (string) sent to the paste server.")
     (download-url . "download_url")
     (delete-url   . "delete_url")
     (digest       . "digest")
+    (hidden       . "hidden")
     (submit-date  . "submitdate")
     (expire-sec   . "expiredate"))
   "Association list of symbols and names of info parameters.
@@ -110,6 +111,7 @@ cdr - is a parameter name (string) returned by paste server.")
     (download-url . "Download URL")
     (delete-url   . "Delete URL")
     (digest       . "Digest (SHA1 value for deleting a paste)")
+    (hidden       . "Hidden")
     (submitter    . "Submitter")
     (submit-date  . "Submitting date")
     (expire-date  . "Expiration date")
@@ -174,6 +176,18 @@ Return INFO."
   (if (= 0 (debpaste-get-param-val 'ret info))
       info
     (error "Server error: %s" (debpaste-get-param-val 'status info))))
+
+(defun debpaste-filter-hidden (info)
+  "Substitute 0/1 with no/yes value for hidden parameter of INFO.
+Return INFO."
+  (let ((val (debpaste-get-param-val 'hidden info)))
+    (when val
+      (cond
+       ((equal 0 val)
+        (setcdr (assoc 'hidden info) "no"))
+       ((equal 1 val)
+        (setcdr (assoc 'hidden info) "yes")))))
+  info)
 
 (defun debpaste-filter-url (info)
   "Add \"http:\" string to url parameters.
@@ -683,7 +697,7 @@ Store additional info (without paste text) in a buffer-local
 ;;; Adding (posting) a paste
 
 (defcustom debpaste-posted-filter-functions
-  '(debpaste-filter-intern debpaste-filter-error-check
+  '(debpaste-filter-intern debpaste-filter-error-check debpaste-filter-hidden
     debpaste-filter-url debpaste-save-last-posted-info
     debpaste-posted-kill-url-display-summary)
   "List of functions for filtering info returned after posting a paste.
@@ -692,7 +706,7 @@ See `debpaste-action' for details."
   :group 'debpaste)
 
 (defcustom debpaste-posted-info-buffer-params
-  '(id digest view-url download-url delete-url)
+  '(id digest hidden view-url download-url delete-url)
   "List of info parameters of a posted paste displayed in buffer.
 If nil, display all parameters.
 Parameters are symbols from `debpaste-param-description-alist'."
