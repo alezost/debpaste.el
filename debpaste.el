@@ -912,6 +912,31 @@ SHA1 (Secure Hash Algorithm) digest is a word of 40 hexadecimal symbols."
     (and (string-match "^[0-9a-f]\\{40\\}$" word)
          word)))
 
+
+;;; Keymap with commands
+
+;;;###autoload
+(defvar debpaste-command-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "r" 'debpaste-display-paste) ; receive
+    (define-key map "g" 'debpaste-display-paste) ; get
+    (define-key map "p" 'debpaste-paste-region)  ; post
+    (define-key map "a" 'debpaste-paste-region)  ; add
+    (define-key map "P" 'debpaste-paste-buffer)
+    (define-key map "A" 'debpaste-paste-buffer)
+    (define-key map "d" 'debpaste-delete-paste)
+    (define-key map "ir" 'debpaste-display-received-info-in-buffer)
+    (define-key map "ig" 'debpaste-display-received-info-in-buffer)
+    (define-key map "ip" 'debpaste-display-posted-info-in-buffer)
+    (define-key map "ia" 'debpaste-display-posted-info-in-buffer)
+    (define-key map "k" 'debpaste-kill-all-buffers)
+    (define-key map "q" 'debpaste-quit-buffers)
+    map)
+  "Keymap for debpaste commands.")
+
+;;;###autoload
+(defalias 'debpaste-command-prefix debpaste-command-map)
+
 (provide 'debpaste)
 
 ;;; debpaste.el ends here
