@@ -1,0 +1,139 @@
+# -*- sentence-end-double-space: t; fill-column: 72; eval: (auto-fill-mode) -*-
+
+* About
+Debpaste is an Emacs interface for the [[http://paste.debian.net/][Debian Paste Service]].  It
+provides receiving, posting and deleting pastes using XML-RPC.
+
+* Dependencies
+A package =xml-rpc.el= is required.  It can be installed using [[http://melpa.milkbox.net][MELPA]] or
+[[http://marmalade-repo.org][Marmalade]].  Wiki-page - [[http://www.emacswiki.org/cgi-bin/wiki/XmlRpc]].
+
+* Installation
+** Manual
+As usual you need to add this to your =.emacs=:
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'load-path "/path/to/debpaste-dir")
+#+END_SRC
+After that you can either load the package on emacs start with:
+#+BEGIN_SRC emacs-lisp
+  (require 'debpaste)
+#+END_SRC
+or add a bunch of lines for autoloading functions and put into
+=eval-after-load= what should be put there, for example:
+#+BEGIN_SRC emacs-lisp
+  (autoload 'debpaste-display-paste "debpaste" nil t)
+  (autoload 'debpaste-paste-region "debpaste" nil t)
+  (autoload 'debpaste-paste-buffer "debpaste" nil t)
+  (autoload 'debpaste-delete-paste "debpaste" nil t)
+  (eval-after-load 'debpaste
+    '(progn
+       (delete 'debpaste-display-received-info-in-minibuffer
+               debpaste-received-filter-functions)
+       (define-key debpaste-command-map "i"
+         'debpaste-display-received-info-in-buffer)
+       (define-key debpaste-command-map "l"
+         'debpaste-display-posted-info-in-buffer)))
+#+END_SRC
+
+** MELPA
+not yet
+
+* Using and configuration
+You can explore variables available for customizing with:
+: M-x customize-group RET debpaste
+
+** Keymap
+The package provides a keymap =debpaste-command-map= with basic commands
+and a prefix that can be bound to a key sequence.  Example of binding
+the prefix and modifying the keymap:
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "M-D") 'debpaste-command-prefix)
+  (define-key debpaste-command-map "mp" 'debpaste-display-posted-info-in-minibuffer)
+  (define-key debpaste-command-map "mr" 'debpaste-display-received-info-in-minibuffer)
+#+END_SRC
+After that you can press ~Meta-Shift-d m p~ for displaying information
+of the last posted paste in minibuffer.  And of course you can see key
+bindings with ~M-D C-h~.
+
+** Receiving a paste
+: M-x debpaste-display-paste
+You will be prompted for a paste ID.  The received paste will be
+displayed in a separate buffer and additional information about the
+paste will be shown in the minibuffer.  More info can be displayed
+using:
+: M-x debpaste-display-received-info-in-buffer
+This info can be configured with these variables:
+- debpaste-param-description-alist,
+- debpaste-received-info-buffer-params,
+- debpaste-received-info-minibuffer-params,
+- debpaste-info-buffer-format,
+- debpaste-info-minibuffer-format,
+- debpaste-ignore-empty-params.
+
+** Posting a paste
+: M-x debpaste-paste-region
+: M-x debpaste-paste-buffer
+With prefix, you will be prompted for posting options.  Variables with
+default values of posting options:
+- debpaste-user-name,
+- debpaste-paste-language,
+- debpaste-expire-time,
+- debpaste-paste-is-hidden.
+After posting a paste, some information about the paste will be shown in
+minibuffer and a paste URL will be put into kill-ring.  More info about
+the last posted paste can be displayed using:
+: M-x debpaste-display-posted-info-in-buffer
+
+** Deleting a paste
+: M-x debpaste-deleted-paste
+You will be prompted for SHA1 digest of the paste (you receive it after
+posting a paste).
+
+* Advanced configuration
+** Buffer names
+If you don't like default names of debpaste buffers, you can modify
+them by configuring these variables:
+- debpaste-received-paste-buffer-name-function,
+- debpaste-received-info-buffer-name-function,
+- debpaste-posted-info-buffer-name-function,
+- debpaste-buffer-name-regexp.
+Don't forget to modify the last regexp: it is used for
+=debpaste-kill-all-buffers= and =debpaste-quit-buffers= functions.
+
+Example:
+#+BEGIN_SRC emacs-lisp
+  (setq
+   debpaste-received-paste-buffer-name-function
+   (lambda (info) (format "Debian paste %s"
+                          (debpaste-get-param-val 'id info)))
+   debpaste-received-info-buffer-name-function
+   (lambda (info) (format " Useless info about the paste %s"
+                          (debpaste-get-param-val 'id info)))
+   debpaste-posted-info-buffer-name-function
+   debpaste-received-info-buffer-name-function
+   debpaste-buffer-name-regexp "^Debian paste .*$\\|^ Useless info about the paste .*$")
+#+END_SRC
+
+** Filter functions
+The main points for hacking are variables with filter functions:
+- debpaste-received-filter-functions,
+- debpaste-posted-filter-functions,
+- debpaste-deleted-filter-functions.
+These functions can be used for editing/adding/removing info parameters
+or for side effects like putting url into kill-ring or displaying info
+in the minibuffer.  See =debpaste-action= for details.
+
+For example, if you don't want paste URL to be put into the kill-ring
+but want to see a message with some customized info after posting a
+paste, you can use something like this:
+#+BEGIN_SRC emacs-lisp
+  (setq
+   debpaste-posted-filter-functions
+   '(debpaste-filter-intern debpaste-filter-error-check
+     debpaste-filter-url debpaste-save-last-posted-info
+     debpaste-display-posted-info-in-minibuffer)
+   debpaste-posted-info-minibuffer-params
+   '(view-url download-url delete-url))
+#+END_SRC
+Instead of setting =debpaste-posted-filter-functions=, you may use a
+more complicated decision with =delete= and =add-to-list= functions.
