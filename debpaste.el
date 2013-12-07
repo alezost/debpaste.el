@@ -3,6 +3,12 @@
 ;; Copyright (C) 2013 Alex Kost
 
 ;; Author: Alex Kost <alezost@gmail.com>
+;; URL: http://github.com/alezost/debpaste.el
+;; Created: 2013-12-03
+;; Version: 0.1
+;; Last-Updated: 2013-12-07
+;; Package-Requires: ((xml-rpc))
+;; Keywords: paste
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -18,6 +24,21 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This package provides an interface for receiving, posting and
+;; deleting pastes from <http://paste.debian.net/>.
+
+;; Basic interactive commands:
+;; - `debpaste-display-paste',
+;; - `debpaste-paste-region',
+;; - `debpaste-delete-paste'.
+
+;; The package provides a keymap, that can be bound and used like this:
+;;   (global-set-key (kbd "M-D") 'debpaste-command-prefix)
+;;   (define-key debpaste-command-map "i" 'debpaste-display-received-info-in-buffer)
+;;   (define-key debpaste-command-map "l" 'debpaste-display-posted-info-in-buffer)
+
+;; For full description, see <http://github.com/alezost/debpaste.el>.
 
 ;; For information about features provided by debian paste server,
 ;; read <http://paste.debian.net/rpc-interface.html>.
