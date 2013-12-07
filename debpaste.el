@@ -691,8 +691,8 @@ Store additional info (without paste text) in a buffer-local
               (funcall debpaste-received-paste-buffer-name-function
                        info)))
         (paste-text (debpaste-get-param-val 'text info))
-        (paste-info (delete-if (lambda (param) (equal (car param) 'text))
-                               info)))
+        (paste-info (cl-delete-if (lambda (param) (equal (car param) 'text))
+                                  info)))
     (with-current-buffer buf
       (erase-buffer)
       (insert paste-text)
