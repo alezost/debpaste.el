@@ -5,8 +5,8 @@
 ;; Author: Alex Kost <alezost@gmail.com>
 ;; URL: http://github.com/alezost/debpaste.el
 ;; Created: 2013-12-03
-;; Version: 0.1
-;; Last-Updated: 2013-12-07
+;; Version: 0.1.1
+;; Last-Updated: 2013-12-09
 ;; Package-Requires: ((xml-rpc))
 ;; Keywords: paste
 
@@ -108,6 +108,7 @@ cdr - is a command name (string) sent to the paste server.")
   '((ret          . "rc")
     (status       . "statusmessage")
     (text         . "code")
+    (lang         . "lang")
     (submitter    . "submitter")
     (id           . "id")
     (base-url     . "base_url")
@@ -127,6 +128,7 @@ cdr - is a parameter name (string) returned by paste server.")
   '((id           . "ID")
     (ret          . "Return code")
     (status       . "Server message")
+    (lang         . "Language")
     (base-url     . "Base URL")
     (view-url     . "View URL")
     (download-url . "Download URL")
@@ -606,7 +608,7 @@ See `debpaste-action' for details."
   :group 'debpaste)
 
 (defcustom debpaste-received-info-buffer-params
-  '(id status submitter submit-date expire-date)
+  '(id status lang submitter submit-date expire-date)
   "List of info parameters of a received paste displayed in buffer.
 If nil, display all parameters.
 Parameters are symbols from `debpaste-param-description-alist'."
@@ -692,10 +694,13 @@ Store additional info (without paste text) in a buffer-local
                        info)))
         (paste-text (debpaste-get-param-val 'text info))
         (paste-info (cl-delete-if (lambda (param) (equal (car param) 'text))
-                                  info)))
+                                  info))
+        (mode (debpaste-get-lang-mode
+               (debpaste-get-param-val 'lang info))))
     (with-current-buffer buf
       (erase-buffer)
       (insert paste-text)
+      (and (fboundp mode) (funcall mode))
       (setq debpaste-info paste-info))
     (let ((win (get-buffer-window buf)))
       (if win
