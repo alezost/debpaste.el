@@ -826,6 +826,7 @@ Store additional info (without paste text) in a buffer-local
       (erase-buffer)
       (insert paste-text)
       (and (fboundp mode) (funcall mode))
+      (goto-char (point-min))
       (setq debpaste-info paste-info))
     (let ((win (get-buffer-window buf)))
       (if win
