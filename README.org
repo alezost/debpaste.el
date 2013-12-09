@@ -4,6 +4,9 @@
 Debpaste is an Emacs interface for the [[http://paste.debian.net/][Debian Paste Service]].  It
 provides receiving, posting and deleting pastes using XML-RPC.
 
+Highlighting (i.e. enabling major-mode depending on a paste language) is
+supported.
+
 * Dependencies
 A package =xml-rpc.el= is required.  It can be installed using [[http://melpa.milkbox.net][MELPA]] or
 [[http://marmalade-repo.org][Marmalade]].  Wiki-page - [[http://www.emacswiki.org/cgi-bin/wiki/XmlRpc]].
