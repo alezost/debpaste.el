@@ -60,10 +60,10 @@ bindings with ~M-D C-h~.
 
 ** Receiving a paste
 : M-x debpaste-display-paste
-You will be prompted for a paste ID.  The received paste will be
-displayed in a separate buffer and additional information about the
-paste will be shown in the minibuffer.  More info can be displayed
-using:
+You will be prompted for a paste ID (URL at point can help - see the
+docstring of that function).  The received paste will be displayed in a
+separate buffer and additional information about the paste will be shown
+in the minibuffer.  More info can be displayed using:
 : M-x debpaste-display-received-info-in-buffer
 This info can be configured with these variables:
 - debpaste-param-description-alist,

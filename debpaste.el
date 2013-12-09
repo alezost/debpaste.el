@@ -5,7 +5,7 @@
 ;; Author: Alex Kost <alezost@gmail.com>
 ;; URL: http://github.com/alezost/debpaste.el
 ;; Created: 2013-12-03
-;; Version: 0.1.1
+;; Version: 0.1.2
 ;; Last-Updated: 2013-12-09
 ;; Package-Requires: ((xml-rpc))
 ;; Keywords: paste
@@ -47,9 +47,7 @@
 
 (require 'cl-macs)
 (require 'xml-rpc)
-
-(defconst debpaste-server-url "http://paste.debian.net/server.pl"
-  "URL of the XML-RPC paste server.")
+(require 'url-expand)
 
 (defgroup debpaste nil
   "Emacs interface for debian paste server."
@@ -87,6 +85,45 @@ info parameters (see `debpaste-param-alist')."
     (mapc (lambda (fun)
             (setq info (funcall fun info)))
           filters)))
+
+
+;;; URLs
+
+(defcustom debpaste-base-url "http://paste.debian.net/"
+  "Root URL of the paste server."
+  :type 'string
+  :group 'debpaste)
+
+(defcustom debpaste-server-url
+  (url-expand-file-name "server.pl" debpaste-base-url)
+  "URL of the XML-RPC paste server."
+  :type 'string
+  :group 'debpaste)
+
+(defcustom debpaste-paste-url-regexp
+  (concat "^" (regexp-quote debpaste-base-url)
+          "/?" ; `debpaste-base-url' may end with "/" or not
+          "\\([0-9]+\\)$")
+  "Regexp matching URL of a non-hidden paste.
+The first parenthesized expression should match ID of the paste."
+  :type 'string
+  :group 'debpaste)
+
+(defcustom debpaste-hidden-paste-url-regexp
+  (concat "^" (regexp-quote debpaste-base-url)
+          "/?hidden/\\([0-9a-f]+\\)$")
+  "Regexp matching URL of a hidden paste.
+The first parenthesized expression should match ID of the paste."
+  :type 'string
+  :group 'debpaste)
+
+(defun debpaste-get-id-by-url (url)
+  "Return ID from a paste URL.
+Return nil if URL doesn't match `debpaste-paste-url-regexp' or
+`debpaste-hidden-paste-url-regexp'."
+  (and (or (string-match debpaste-paste-url-regexp url)
+           (string-match debpaste-hidden-paste-url-regexp url))
+       (match-string 1 url)))
 
 
 ;;; Server commands and returned parameters
@@ -623,6 +660,12 @@ Parameters are symbols from `debpaste-param-description-alist'."
   :type '(repeat symbol)
   :group 'debpaste)
 
+(defcustom debpaste-confirm-id-at-point nil
+  "If non-nil, prompt for ID even if there is a paste URL at point.
+See `debpaste-display-paste'."
+  :type 'boolean
+  :group 'debpaste)
+
 (defvar-local debpaste-info nil
   "Alist with additional info of the current paste.
 
@@ -710,8 +753,15 @@ Store additional info (without paste text) in a buffer-local
 
 ;;;###autoload
 (defun debpaste-display-paste (id)
-  "Receive and display a paste with numeric or string ID."
-  (interactive "sPaste ID: ")
+  "Receive and display a paste with numeric or string ID.
+Interactively, prompt for ID unless there is a paste URL at point
+and `debpaste-confirm-id-at-point' is nil."
+  (interactive
+   (list (let* ((url (thing-at-point 'url))
+                (id (and url (debpaste-get-id-by-url url))))
+           (if (or (null id) debpaste-confirm-id-at-point)
+               (read-string "Paste ID: " id)
+             id))))
   (when (numberp id)
     (setq id (number-to-string id)))
   (let ((paste-id id))
