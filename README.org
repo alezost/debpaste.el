@@ -4,12 +4,12 @@
 Debpaste is an Emacs interface for the [[http://paste.debian.net/][Debian Paste Service]].  It
 provides receiving, posting and deleting pastes using XML-RPC.
 
-Highlighting (i.e. enabling major-mode depending on a paste language) is
-supported.
+Highlighting (i.e. enabling a major-mode depending on a paste language)
+is supported.
 
 * Dependencies
-A package =xml-rpc.el= is required.  It can be installed using [[http://melpa.milkbox.net][MELPA]] or
-[[http://marmalade-repo.org][Marmalade]].  Wiki-page - [[http://www.emacswiki.org/cgi-bin/wiki/XmlRpc]].
+A package =xml-rpc.el= is required.  It can be installed from [[http://melpa.milkbox.net][MELPA]] or
+[[http://marmalade-repo.org][Marmalade]].  Wiki-page – [[http://www.emacswiki.org/cgi-bin/wiki/XmlRpc]].
 
 * Installation
 ** Manual
@@ -39,7 +39,8 @@ or add a bunch of lines for autoloading functions and put into
 #+END_SRC
 
 ** MELPA
-not yet
+The package can be installed from [[http://melpa.milkbox.net][MELPA]] (with =M-x package-install= or
+=M-x list-packages=).
 
 * Using and configuration
 You can explore variables available for customizing with:
@@ -51,8 +52,11 @@ and a prefix that can be bound to a key sequence.  Example of binding
 the prefix and modifying the keymap:
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "M-D") 'debpaste-command-prefix)
-  (define-key debpaste-command-map "mp" 'debpaste-display-posted-info-in-minibuffer)
-  (define-key debpaste-command-map "mr" 'debpaste-display-received-info-in-minibuffer)
+  (eval-after-load 'debpaste
+    '(progn (define-key debpaste-command-map "mp"
+              'debpaste-display-posted-info-in-minibuffer)
+            (define-key debpaste-command-map "mr"
+              'debpaste-display-received-info-in-minibuffer))
 #+END_SRC
 After that you can press ~Meta-Shift-d m p~ for displaying information
 of the last posted paste in minibuffer.  And of course you can see key
