@@ -28,15 +28,19 @@
 ;; This package provides an interface for receiving, posting and
 ;; deleting pastes from <http://paste.debian.net/>.
 
+;; You can install the package from MELPA.  If you prefer the manual
+;; installation, the easiest way is to put these lines into your
+;; init-file:
+;;   (add-to-list 'load-path "/path/to/debpaste-dir")
+;;   (require 'debpaste)
+
 ;; Basic interactive commands:
 ;; - `debpaste-display-paste',
 ;; - `debpaste-paste-region',
 ;; - `debpaste-delete-paste'.
 
-;; The package provides a keymap, that can be bound and used like this:
+;; The package provides a keymap, that can be bound like this:
 ;;   (global-set-key (kbd "M-D") 'debpaste-command-prefix)
-;;   (define-key debpaste-command-map "i" 'debpaste-display-received-info-in-buffer)
-;;   (define-key debpaste-command-map "l" 'debpaste-display-posted-info-in-buffer)
 
 ;; For full description, see <http://github.com/alezost/debpaste.el>.
 
