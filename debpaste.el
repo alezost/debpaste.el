@@ -1,13 +1,13 @@
-;;; debpaste.el --- emacs interface for <http://paste.debian.net/>
+;;; debpaste.el --- Interface for getting/posting/deleting pastes from paste.debian.net
 
 ;; Copyright (C) 2013 Alex Kost
 
 ;; Author: Alex Kost <alezost@gmail.com>
-;; URL: http://github.com/alezost/debpaste.el
-;; Created: 2013-12-03
+;; Created: 3 Dec 2013
 ;; Version: 0.1.3
-;; Last-Updated: 2013-12-09
-;; Package-Requires: ((xml-rpc))
+;; Last-Updated: 2013-12-10
+;; Package-Requires: ((xml-rpc "1.6.7"))
+;; URL: http://github.com/alezost/debpaste.el
 ;; Keywords: paste
 
 ;; This program is free software; you can redistribute it and/or modify
