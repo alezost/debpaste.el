@@ -42,6 +42,9 @@
 ;; The package provides a keymap, that can be bound like this:
 ;;   (global-set-key (kbd "M-D") 'debpaste-command-prefix)
 
+;; You will probably want to modify a default poster name:
+;;   (setq debpaste-user-name user-login-name)
+
 ;; For full description, see <http://github.com/alezost/debpaste.el>.
 
 ;; For information about features provided by debian paste server,
