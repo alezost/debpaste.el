@@ -5,7 +5,7 @@
 ;; Author: Alex Kost <alezost@gmail.com>
 ;; Created: 3 Dec 2013
 ;; Version: 0.1.3
-;; Last-Updated: 2013-12-10
+;; Last-Updated: 2013-12-11
 ;; Package-Requires: ((xml-rpc "1.6.7"))
 ;; URL: http://github.com/alezost/debpaste.el
 ;; Keywords: paste
@@ -58,38 +58,6 @@
   :group 'xml-rpc
   :group 'url)
 
-(defun debpaste-send-command (cmd &rest opts)
-  "Send command CMD with options OPTS to the paste server.
-CMD is a symbol from `debpaste-commands'."
-  (apply #'xml-rpc-method-call
-         debpaste-server-url
-         (debpaste-get-command-name cmd)
-         opts))
-
-(cl-defun debpaste-action (&key cmd opts filters)
-  "Send command to the server and make some actions with output.
-
-After sending command (method) CMD with option list OPTS, the
-paste server returns some information which is transformed into
-alist of parameters and values by `xml-rpc-method-call'.  This
-alist (it is called \"info\" in this package) is passed as an
-argument to the first function from the list FILTERS, the
-returned result is passed to the second function from that list
-and so on.
-
-Each filter function should accept a single argument - info alist
-and should return info alist.  Functions may add associations to
-the alist.  In this case you might want to add descriptions of
-the added symbols into `debpaste-param-description-alist'.
-
-`debpaste-filter-intern' should be the first in the FILTERS list
-as other functions from this package use symbols for working with
-info parameters (see `debpaste-param-alist')."
-  (let ((info (apply 'debpaste-send-command cmd opts)))
-    (mapc (lambda (fun)
-            (setq info (funcall fun info)))
-          filters)))
-
 
 ;;; URLs
 
@@ -128,6 +96,41 @@ Return nil if URL doesn't match `debpaste-paste-url-regexp' or
   (and (or (string-match debpaste-paste-url-regexp url)
            (string-match debpaste-hidden-paste-url-regexp url))
        (match-string 1 url)))
+
+
+;;; Interaction with the paste server
+
+(defun debpaste-send-command (cmd &rest opts)
+  "Send command CMD with options OPTS to the paste server.
+CMD is a symbol from `debpaste-commands'."
+  (apply #'xml-rpc-method-call
+         debpaste-server-url
+         (debpaste-get-command-name cmd)
+         opts))
+
+(cl-defun debpaste-action (&key cmd opts filters)
+  "Send command to the server and make some actions with output.
+
+After sending command (method) CMD with option list OPTS, the
+paste server returns some information which is transformed into
+alist of parameters and values by `xml-rpc-method-call'.  This
+alist (it is called \"info\" in this package) is passed as an
+argument to the first function from the list FILTERS, the
+returned result is passed to the second function from that list
+and so on.
+
+Each filter function should accept a single argument - info alist
+and should return info alist.  Functions may add associations to
+the alist.  In this case you might want to add descriptions of
+the added symbols into `debpaste-param-description-alist'.
+
+`debpaste-filter-intern' should be the first in the FILTERS list
+as other functions from this package use symbols for working with
+info parameters (see `debpaste-param-alist')."
+  (let ((info (apply 'debpaste-send-command cmd opts)))
+    (mapc (lambda (fun)
+            (setq info (funcall fun info)))
+          filters)))
 
 
 ;;; Server commands and returned parameters
@@ -547,6 +550,13 @@ Return modified info."
   :type '(alist :key-type string :value-type symbol)
   :group 'debpaste)
 
+(defcustom debpaste-paste-language "text"
+  "Default language used for a posting paste.
+It is used if there is no association for current major mode in
+`debpaste-language-alist'."
+  :type 'string
+  :group 'debpaste)
+
 (defun debpaste-get-lang-name (mode)
   "Return a name of the language for a major mode MODE.
 If there is no association for the MODE in
@@ -759,14 +769,17 @@ Car of each assoc is a symbol from `debpaste-param-description-alist';
 cdr - is a value of that parameter.")
 (put 'debpaste-info 'permanent-local t) ; (info "(elisp) Creating Buffer-Local")
 
+(defvar debpaste-paste-id nil
+  "Temporary value of a paste ID.")
+
 (defun debpaste-add-id-to-info (info)
   "Add id parameter to the INFO.
 Return modified info."
   ;; id parameter is vital for info; as the server doesn't return it,
-  ;; we add it here using `paste-id' (`debpaste-display-paste' should
-  ;; bother about this variable)
+  ;; we add it here using `debpaste-paste-id'
+  ;; (`debpaste-display-paste' should bother about this variable)
   (or (debpaste-get-param-val 'id info)
-      (add-to-list 'info (cons 'id paste-id)))
+      (add-to-list 'info (cons 'id debpaste-paste-id)))
   info)
 
 (defvar debpaste-last-received-info nil
@@ -851,7 +864,7 @@ and `debpaste-confirm-id-at-point' is nil."
              id))))
   (when (numberp id)
     (setq id (number-to-string id)))
-  (let ((paste-id id))
+  (let ((debpaste-paste-id id))
     (debpaste-action :cmd 'get-paste
                      :opts (list id)
                      :filters debpaste-received-filter-functions)))
@@ -894,13 +907,6 @@ Usual values are: `completing-read' or `ido-completing-read'."
 
 (defcustom debpaste-user-name "anonymous"
   "Default user name used for a posting paste."
-  :type 'string
-  :group 'debpaste)
-
-(defcustom debpaste-paste-language "text"
-  "Default language used for a posting paste.
-It is used if there is no association for current major mode in
-`debpaste-language-alist'."
   :type 'string
   :group 'debpaste)
 
