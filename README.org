@@ -144,3 +144,10 @@ paste, you can use something like this:
 #+END_SRC
 Instead of setting =debpaste-posted-filter-functions=, you may use a
 more complicated decision with =delete= and =add-to-list= functions.
+
+* Feedback
+Isn't it good to receive a paste with a proper major mode enabled?
+A variable =debpaste-language-alist= contains associations of languages
+supported by the paste server and emacs major-modes.  If you know what
+mode can be used for a particular language or if you see errors in those
+associations, you may mail me or [[https://github.com/alezost/debpaste.el/issues/new][open an issue]].
