@@ -92,7 +92,7 @@ the last posted paste can be displayed using:
 : M-x debpaste-display-posted-info-in-buffer
 
 ** Deleting a paste
-: M-x debpaste-deleted-paste
+: M-x debpaste-delete-paste
 You will be prompted for SHA1 digest of the paste (you receive it after
 posting a paste).
 
