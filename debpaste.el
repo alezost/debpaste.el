@@ -5,7 +5,7 @@
 ;; Author: Alex Kost <alezost@gmail.com>
 ;; Created: 3 Dec 2013
 ;; Version: 0.1.3
-;; Last-Updated: 2013-12-11
+;; Last-Updated: 2013-12-15
 ;; Package-Requires: ((xml-rpc "1.6.7"))
 ;; URL: http://github.com/alezost/debpaste.el
 ;; Keywords: paste
@@ -458,6 +458,7 @@ Return modified info."
     ;; language parameter, and when this paste is received (with
     ;; `debpaste-display-paste') emacs-lisp-mode is enabled for it.
     ("newlisp" . emacs-lisp-mode)
+    ("newlisp" . lisp-interaction-mode)
     ("newspeak")
     ("nginx")
     ("nimrod")
