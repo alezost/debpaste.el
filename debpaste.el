@@ -4,8 +4,8 @@
 
 ;; Author: Alex Kost <alezost@gmail.com>
 ;; Created: 3 Dec 2013
-;; Version: 0.1.3
-;; Last-Updated: 2013-12-15
+;; Version: 0.1.4
+;; Last-Updated: 2013-12-21 Sat 11:00:18 (+0400)
 ;; Package-Requires: ((xml-rpc "1.6.7"))
 ;; URL: http://github.com/alezost/debpaste.el
 ;; Keywords: paste
@@ -40,7 +40,7 @@
 ;; - `debpaste-delete-paste'.
 
 ;; The package provides a keymap, that can be bound like this:
-;;   (global-set-key (kbd "M-D") 'debpaste-command-prefix)
+;;   (global-set-key (kbd "M-D") 'debpaste-command-map)
 
 ;; You will probably want to modify a default poster name:
 ;;   (setq debpaste-user-name user-login-name)
@@ -1138,7 +1138,7 @@ SHA1 (Secure Hash Algorithm) digest is a word of 40 hexadecimal symbols."
   "Keymap for debpaste commands.")
 
 ;;;###autoload
-(defalias 'debpaste-command-prefix debpaste-command-map)
+(fset 'debpaste-command-map debpaste-command-map)
 
 (provide 'debpaste)
 

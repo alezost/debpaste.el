@@ -47,11 +47,10 @@ You can explore variables available for customizing with:
 : M-x customize-group RET debpaste
 
 ** Keymap
-The package provides a keymap =debpaste-command-map= with basic commands
-and a prefix that can be bound to a key sequence.  Example of binding
-the prefix and modifying the keymap:
+The package provides a keymap =debpaste-command-map= with basic
+commands.  Example of binding and modifying the keymap:
 #+BEGIN_SRC emacs-lisp
-  (global-set-key (kbd "M-D") 'debpaste-command-prefix)
+  (global-set-key (kbd "M-D") 'debpaste-command-map)
   (eval-after-load 'debpaste
     '(progn (define-key debpaste-command-map "mp"
               'debpaste-display-posted-info-in-minibuffer)
