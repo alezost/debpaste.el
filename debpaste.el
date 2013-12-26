@@ -78,7 +78,7 @@
 (defcustom debpaste-paste-url-regexp
   (concat "^" (regexp-quote debpaste-base-url)
           "/?" ; `debpaste-base-url' may end with "/" or not
-          "\\([0-9]+\\)$")
+          "\\([0-9]+\\)")
   "Regexp matching URL of a non-hidden paste.
 The first parenthesized expression should match ID of the paste."
   :type 'string
@@ -86,7 +86,7 @@ The first parenthesized expression should match ID of the paste."
 
 (defcustom debpaste-hidden-paste-url-regexp
   (concat "^" (regexp-quote debpaste-base-url)
-          "/?hidden/\\([0-9a-f]+\\)$")
+          "/?hidden/\\([0-9a-f]+\\)")
   "Regexp matching URL of a hidden paste.
 The first parenthesized expression should match ID of the paste."
   :type 'string
