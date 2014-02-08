@@ -1,10 +1,10 @@
 ;;; debpaste.el --- Interface for getting/posting/deleting pastes from paste.debian.net
 
-;; Copyright (C) 2013 Alex Kost
+;; Copyright (C) 2013-2014 Alex Kost
 
 ;; Author: Alex Kost <alezost@gmail.com>
 ;; Created: 3 Dec 2013
-;; Version: 0.1.4.1
+;; Version: 0.1.5
 ;; Package-Requires: ((xml-rpc "1.6.7"))
 ;; URL: http://github.com/alezost/debpaste.el
 ;; Keywords: paste
@@ -189,7 +189,7 @@ cdr - is a parameter name (string) returned by paste server.")
 
 Descriptions are used for displaying paste information.
 
-Symbols are either from `debpaste-param-name-alist' or are added
+Symbols are either from `debpaste-param-alist' or are added
 by filter functions.  See `debpaste-action' for details."
   :type '(alist :key-type symbol :value-type string)
   :group 'debpaste)
@@ -207,11 +207,11 @@ by filter functions.  See `debpaste-action' for details."
   (car (rassoc param-name debpaste-param-alist)))
 
 (defun debpaste-get-param-description (param-symbol)
-  "Return a description of a parameter PARAM-NAME."
+  "Return a description of a parameter PARAM-SYMBOL."
   (cdr (assoc param-symbol debpaste-param-description-alist)))
 
 (defun debpaste-get-param-val (param info)
-  "Return a value of a parameter PARAM from paste info INFO."
+  "Return a value of a parameter PARAM from paste INFO."
   (cdr (assoc param info)))
 
 
@@ -259,7 +259,7 @@ Return INFO."
   info)
 
 (defun debpaste-filter-url (info)
-  "Add \"http:\" string to url parameters.
+  "Add \"http:\" string to url parameters from paste INFO.
 Return modified info."
   (mapc (lambda (param)
           (let ((param-name (symbol-name (car param)))
@@ -270,7 +270,7 @@ Return modified info."
   info)
 
 (defun debpaste-filter-date (info)
-  "Format expiration and submit dates with `debpaste-date-format'.
+  "Format dates of paste INFO with `debpaste-date-format'.
 Add `expire-date' symbol to the info alist.
 Return modified info."
   (let ((submit-time (date-to-time
@@ -678,11 +678,11 @@ It should contain 2 '%s'-sequences for a description and a value."
 (defun debpaste-get-info-string (info fmt &optional params)
   "Return a string containing INFO.
 
+FMT is a string to format descriptions and values of parameters.
+
 PARAMS is a list of parameters included in a returned string.  If
 it is not specified, show all info parameters (respecting
 `debpaste-ignore-empty-params').
-
-FMT is a string to format descriptions and values of parameters.
 
 Parameters and their descriptions got from
 `debpaste-param-description-alist'."
@@ -971,14 +971,14 @@ prompting."
   (y-or-n-p "Hidden paste?"))
 
 (defun debpaste-url-to-kill-ring (info)
-  "Add view-url parameter from INFO to the kill-ring.
+  "Add view-url parameter from INFO to the `kill-ring'.
 Return INFO."
   (kill-new (debpaste-get-param-val 'view-url info))
   info)
 
 ;;;###autoload
 (defun debpaste-paste-region (start end)
-  "Send a region to the paste server.
+  "Send a text between START and END to the paste server.
 Interactively use current region.
 
 Prompt for additional options specified in
@@ -1060,7 +1060,7 @@ using `debpaste-info-minibuffer-format' to format info text."
   info)
 
 (defun debpaste-posted-kill-url-display-summary (info)
-  "Add paste URL to the kill-ring and display paste summary.
+  "Add paste URL to the `kill-ring' and display paste summary.
 Return INFO.
 
 Interactively, use info of the last posted paste.
