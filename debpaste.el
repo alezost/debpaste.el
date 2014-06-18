@@ -1111,7 +1111,8 @@ You receive DIGEST after posting a paste."
   "Return the SHA1 digest at point, or nil if none is found.
 SHA1 (Secure Hash Algorithm) digest is a word of 40 hexadecimal symbols."
   (let ((word (thing-at-point 'word)))
-    (and (string-match "^[0-9a-f]\\{40\\}$" word)
+    (and word
+         (string-match "^[0-9a-f]\\{40\\}$" word)
          word)))
 
 
