@@ -39,7 +39,7 @@ or add a bunch of lines for autoloading functions and put into
 #+END_SRC
 
 ** MELPA
-The package can be installed from [[http://melpa.milkbox.net][MELPA]] (with =M-x package-install= or
+The package can be installed from [[http://melpa.org][MELPA]] (with =M-x package-install= or
 =M-x list-packages=).
 
 * Using and configuration
