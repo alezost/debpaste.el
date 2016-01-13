@@ -466,6 +466,7 @@ Return modified info."
     ("objective-c" . objc-mode)
     ("objective-j")
     ("ocaml" . ocaml-mode)
+    ("ocaml" . tuareg-mode)
     ("octave" . octave-mode)
     ("ooc")
     ("opa")
