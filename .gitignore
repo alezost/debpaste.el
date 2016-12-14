@@ -1,2 +1,4 @@
+tmp
 *.elc
 debpaste-test.el
+*-autoloads.el
