@@ -1,5 +1,3 @@
-# -*- sentence-end-double-space: t; fill-column: 72; eval: (auto-fill-mode) -*-
-
 * About
 Debpaste is an Emacs interface for the [[http://paste.debian.net/][Debian Paste Service]].  It
 provides receiving, posting and deleting pastes using XML-RPC.
@@ -8,8 +6,8 @@ Highlighting (i.e. enabling a major-mode depending on a paste language)
 is supported.
 
 * Dependencies
-A package =xml-rpc.el= is required.  It can be installed from [[http://melpa.milkbox.net][MELPA]] or
-[[http://marmalade-repo.org][Marmalade]].  Wiki-page – [[http://www.emacswiki.org/cgi-bin/wiki/XmlRpc]].
+[[https://www.emacswiki.org/emacs/XmlRpc][XmlRpc]] package is required.  It can be installed from [[http://melpa.org][MELPA]] or
+[[https://marmalade-repo.org][Marmalade]].
 
 * Installation
 ** Manual
@@ -28,14 +26,13 @@ or add a bunch of lines for autoloading functions and put into
   (autoload 'debpaste-paste-region "debpaste" nil t)
   (autoload 'debpaste-paste-buffer "debpaste" nil t)
   (autoload 'debpaste-delete-paste "debpaste" nil t)
-  (eval-after-load 'debpaste
-    '(progn
-       (delete 'debpaste-display-received-info-in-minibuffer
-               debpaste-received-filter-functions)
-       (define-key debpaste-command-map "i"
-         'debpaste-display-received-info-in-buffer)
-       (define-key debpaste-command-map "l"
-         'debpaste-display-posted-info-in-buffer)))
+  (with-eval-after-load 'debpaste
+    (delete 'debpaste-display-received-info-in-minibuffer
+            debpaste-received-filter-functions)
+    (define-key debpaste-command-map "i"
+      'debpaste-display-received-info-in-buffer)
+    (define-key debpaste-command-map "l"
+      'debpaste-display-posted-info-in-buffer))
 #+END_SRC
 
 ** MELPA
@@ -51,11 +48,11 @@ The package provides a keymap =debpaste-command-map= with basic
 commands.  Example of binding and modifying the keymap:
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "M-D") 'debpaste-command-map)
-  (eval-after-load 'debpaste
-    '(progn (define-key debpaste-command-map "mp"
-              'debpaste-display-posted-info-in-minibuffer)
-            (define-key debpaste-command-map "mr"
-              'debpaste-display-received-info-in-minibuffer))
+  (with-eval-after-load 'debpaste
+    (define-key debpaste-command-map "mp"
+      'debpaste-display-posted-info-in-minibuffer)
+    (define-key debpaste-command-map "mr"
+      'debpaste-display-received-info-in-minibuffer))
 #+END_SRC
 After that you can press ~Meta-Shift-d m p~ for displaying information
 of the last posted paste in minibuffer.  And of course you can see key
@@ -68,7 +65,7 @@ docstring of that function).  The received paste will be displayed in a
 separate buffer and additional information about the paste will be shown
 in the minibuffer.  More info can be displayed using:
 : M-x debpaste-display-received-info-in-buffer
-This info can be configured with these variables:
+This info can be configured with the following variables:
 - debpaste-param-description-alist,
 - debpaste-received-info-buffer-params,
 - debpaste-received-info-minibuffer-params,
